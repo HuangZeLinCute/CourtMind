@@ -2,6 +2,8 @@
 
 > 面向羽毛球比赛视频的智能分析平台：从球场标定、人体姿态与羽毛球轨迹检测，到 Rally 自动切分、击球统计、比赛报告和基于比赛数据的 AI 对局问答。
 
+**简体中文** | [English](README_EN.md)
+
 ![CourtMind AI 对局分析](docs/images/ai-match-chat.png)
 
 ## 项目简介
