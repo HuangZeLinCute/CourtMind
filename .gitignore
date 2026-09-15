@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.agents/
+.env
+.env.*
+!.env.example
+
+# Local inputs and generated outputs
+results/
+outputs/
+uploads/
+*.log
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Model weights are intentionally not published
+weights/*
+!weights/.gitkeep
+*.pt
+*.pth
+*.onnx
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

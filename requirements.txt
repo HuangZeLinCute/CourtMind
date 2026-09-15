@@ -1,0 +1,36 @@
+opencv-python==4.10.0.84
+opencv-contrib-python==4.10.0.84
+numpy>=1.21.6,<2.0
+pillow>=9.2.0,<12.0
+# CUDA 12.4 build of PyTorch (RTX 40-series; driver 525+). For a CPU-only
+# machine replace cu124 with cpu instead (torch==2.5.1+cpu / torchvision==0.20.1+cpu).
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.5.1
+torchvision==0.20.1
+ultralytics>=8.0.0
+rtmlib>=0.0.1
+onnxruntime==1.18.1
+pandas>=1.3.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+moviepy>=1.0.3,<2.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
+openpyxl>=3.0.0
+# CourtKeyNet inference (added for automatic court corner detection)
+# NOTE: albumentations is intentionally NOT added — it is only required by
+# CourtKeyNet *training* (dataloader) and conflicts with this project's
+# OpenCV 4.10 / numpy<2 stack (it forces OpenCV 5 / numpy 2).
+safetensors>=0.4.0
+
+# FastAPI backend for the React web app (added)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+
+# TrackNetV3 temporal shuttlecock tracking (added; parse is a light text
+# helper used by the tracknet package and has no heavy transitive deps)
+parse>=1.20
+
+# TrackNetV4 uses Keras 3 with the existing PyTorch runtime as its backend.
+keras>=3.5,<4
