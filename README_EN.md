@@ -4,9 +4,9 @@
 
 [简体中文](README.md) | **English**
 
-[![CourtMind AI match analysis: inline video evidence in an answer](docs/images/chat-poster.jpg)](docs/images/pay.mp4)
+<video src="docs/images/speed.mp4" controls loop muted playsinline width="100%"></video>
 
-*Click the cover to play the demo (AI match analysis with inline hit clips).*
+[▶ Play the demo (AI match report)](docs/images/speed.mp4)
 
 ## Overview
 
@@ -28,12 +28,6 @@ The AI match-analysis workspace streams answers from Agnes or DeepSeek. Answers 
 - Analysis history, light/dark themes, and model/LLM settings.
 
 > Hits, rallies, positions, and movement metrics are computer-vision estimates. They are not official scoring or referee decisions. Occlusion, video quality, camera angle, and low detection coverage may affect the results, and uncertainty is surfaced in the report.
-
-## Interface
-
-[![CourtMind analysis result page](docs/images/analysis-poster.jpg)](docs/images/analysis.mp4)
-
-*Result page: the annotated video and the live metric panel stay in sync with playback.*
 
 ## Technology Stack
 
@@ -230,7 +224,7 @@ CourtMind/
 │     ├─ pages/                   # Dashboard, analysis, results, chat, history, settings
 │     ├─ router/                  # Client-side routes
 │     └─ types/                   # TypeScript types
-├─ docs/                          # Design notes, README screenshots and demo videos
+├─ docs/                          # Design notes and demo videos
 ├─ weights/                       # Local model weights; excluded from Git
 ├─ templates/                     # Court template images
 ├─ videos/                        # Demonstration videos
