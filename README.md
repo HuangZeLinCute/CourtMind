@@ -4,7 +4,9 @@
 
 **简体中文** | [English](README_EN.md)
 
-![CourtMind AI 对局分析](docs/images/ai-match-chat.png)
+[![CourtMind AI 对局分析：回答内嵌击球片段](docs/images/chat-poster.jpg)](docs/images/pay.mp4)
+
+*点击封面播放演示视频（AI 对局分析，回答内嵌击球片段）。*
 
 ## 项目简介
 
@@ -26,6 +28,12 @@ AI 对局分析支持流式回答。回答会优先引用当前比赛的结构�
 - 分析历史、明暗主题、模型与 LLM 配置管理。
 
 > 算法给出的击球、Rally、站位和移动指标属于计算机视觉估计，不等同于裁判计分或正式比赛结论。低置信度、遮挡和低检测覆盖率会在报告中明确提示。
+
+## 界面演示
+
+[![CourtMind 分析结果页](docs/images/analysis-poster.jpg)](docs/images/analysis.mp4)
+
+*分析结果页：标注视频与右侧实时指标随播放进度同步。*
 
 ## 技术栈
 
@@ -222,7 +230,7 @@ CourtMind/
 │     ├─ pages/                   # 仪表盘、分析、结果、聊天、历史、设置
 │     ├─ router/                  # 前端路由
 │     └─ types/                   # TypeScript 类型
-├─ docs/                          # 设计与算法文档、README 图片
+├─ docs/                          # 设计与算法文档、README 截图与演示视频
 ├─ weights/                       # 模型权重（大文件通常不提交 Git）
 ├─ uploads/                       # 上传视频与球场状态
 ├─ outputs/                       # 每个分析任务的结果
