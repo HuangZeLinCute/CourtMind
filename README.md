@@ -4,9 +4,9 @@
 
 **简体中文** | [English](README_EN.md)
 
-<video src="docs/images/speed.mp4" controls loop muted playsinline width="100%"></video>
+![CourtMind AI 比赛报告演示](docs/images/speed.gif)
 
-[▶ 播放演示视频（AI 比赛报告）](docs/images/speed.mp4)
+*动图为分析结果页的 AI 比赛报告；[▶ 观看完整视频（9.8s）](docs/images/speed.mp4)。*
 
 ## 项目简介
 
@@ -224,7 +224,7 @@ CourtMind/
 │     ├─ pages/                   # 仪表盘、分析、结果、聊天、历史、设置
 │     ├─ router/                  # 前端路由
 │     └─ types/                   # TypeScript 类型
-├─ docs/                          # 设计与算法文档、演示视频
+├─ docs/                          # 设计与算法文档、演示动图与视频
 ├─ weights/                       # 模型权重（大文件通常不提交 Git）
 ├─ uploads/                       # 上传视频与球场状态
 ├─ outputs/                       # 每个分析任务的结果

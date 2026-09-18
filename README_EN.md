@@ -4,9 +4,9 @@
 
 [简体中文](README.md) | **English**
 
-<video src="docs/images/speed.mp4" controls loop muted playsinline width="100%"></video>
+![CourtMind AI match report demo](docs/images/speed.gif)
 
-[▶ Play the demo (AI match report)](docs/images/speed.mp4)
+*The animation shows the AI match report tab; [▶ watch the full clip (9.8s)](docs/images/speed.mp4).*
 
 ## Overview
 
@@ -224,7 +224,7 @@ CourtMind/
 │     ├─ pages/                   # Dashboard, analysis, results, chat, history, settings
 │     ├─ router/                  # Client-side routes
 │     └─ types/                   # TypeScript types
-├─ docs/                          # Design notes and demo videos
+├─ docs/                          # Design notes, demo animation and video
 ├─ weights/                       # Local model weights; excluded from Git
 ├─ templates/                     # Court template images
 ├─ videos/                        # Demonstration videos
