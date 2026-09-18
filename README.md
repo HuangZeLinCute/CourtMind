@@ -6,8 +6,6 @@
 
 ![CourtMind AI 比赛报告演示](docs/images/speed.gif)
 
-*动图为分析结果页的 AI 比赛报告；[▶ 观看完整视频（9.8s）](docs/images/speed.mp4)。*
-
 ## 项目简介
 
 CourtMind 采用 React + FastAPI 的前后端架构。用户上传比赛视频后，系统会自动识别球场、跟踪双方球员和羽毛球，并把视觉算法结果转化为可读的比赛指标、训练建议和可回看的关键片段。

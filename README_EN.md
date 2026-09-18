@@ -6,8 +6,6 @@
 
 ![CourtMind AI match report demo](docs/images/speed.gif)
 
-*The animation shows the AI match report tab; [▶ watch the full clip (9.8s)](docs/images/speed.mp4).*
-
 ## Overview
 
 CourtMind is a React and FastAPI application that turns badminton match videos into understandable performance data. After a video is uploaded, the system detects the court, tracks both players and the shuttlecock, estimates movement and rally events, and produces an annotated video, a structured match report, and actionable training suggestions.
