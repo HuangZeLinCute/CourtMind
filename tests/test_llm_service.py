@@ -80,6 +80,30 @@ class LlmServiceTests(unittest.TestCase):
         self.assertNotIn("test-only", serialized)
         self.assertEqual([item["role"] for item in saved["agnes"]], ["user", "assistant"])
 
+    def test_reply_language_follows_the_user_message(self):
+        captured = {}
+
+        def fake_open(request, timeout):
+            captured["payload"] = json.loads(request.data.decode("utf-8"))
+            return _Response({"choices": [{"message": {"content": "ok"}}]})
+
+        with tempfile.TemporaryDirectory() as root, patch.object(
+            llm_service.job_service, "job_result", return_value=self._result(root)
+        ), patch.dict(os.environ, {"AGNES_API_KEY": "test-only"}), patch.object(
+            llm_service, "urlopen", side_effect=fake_open
+        ):
+            llm_service.chat("job1", "agnes", "How many hits were there?")
+            english = captured["payload"]["messages"]
+
+        self.assertEqual(llm_service.detect_answer_language("How many hits were there?"), "en")
+        self.assertEqual(llm_service.detect_answer_language("一共多少次击球？"), "zh")
+        self.assertEqual(llm_service.detect_answer_language("AI 分析一下第二回合"), "zh")
+        # The directive must be the last instruction before the user turn, so it
+        # wins over the Chinese MATCH_DATA payload.
+        self.assertEqual(english[-1]["role"], "user")
+        self.assertEqual(english[-2]["role"], "system")
+        self.assertIn("Reply language", english[-2]["content"])
+
     def test_missing_key_fails_before_network_call(self):
         with patch.dict(os.environ, {"AGNES_API_KEY": ""}, clear=False):
             with self.assertRaisesRegex(RuntimeError, "not configured"):
@@ -109,7 +133,9 @@ class LlmServiceTests(unittest.TestCase):
             self.assertEqual(len(llm_service.get_history("job1", "agnes")), 22)
             payload = json.loads(mock_open.call_args.args[0].data)
             self.assertTrue(payload["stream"])
-            self.assertEqual(len(payload["messages"]), 15)
+            # system(SYSTEM_PROMPT) + system(MATCH_DATA) + 12 history + language
+            # directive + user turn
+            self.assertEqual(len(payload["messages"]), 16)
 
     def test_interrupted_stream_does_not_save_partial_answer(self):
         packets = [{"choices": [{"delta": {"content": "partial"}}]}]

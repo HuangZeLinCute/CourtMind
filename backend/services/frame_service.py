@@ -105,45 +105,81 @@ def _select_evidence_hit(job_id: str, valid_hits: list[dict], report: dict) -> t
     return hit, state
 
 
-def _movement_guidance(hit: dict, state: dict | None, report: dict) -> tuple[str, str]:
+def _movement_guidance(hit: dict, state: dict | None, report: dict,
+                       language: str = "zh") -> tuple[str, str]:
+    """Build the frame caption plus a tactical note in the reply language."""
     time_sec = float(hit.get("time_sec") or 0)
     player = hit.get("player")
     players = report.get("players") or {}
     upper_distance = float((players.get("upper") or {}).get("distance_m") or 0)
     lower_distance = float((players.get("lower") or {}).get("distance_m") or 0)
-    heavier = "上方" if upper_distance >= lower_distance else "下方"
-    caption = f"{time_sec:.2f} 秒击球时刻；用于复盘{heavier}球员的站位与回位路线"
+    # Chinese only when the reply language is known to be Chinese; any other
+    # (or unknown) language gets the English copy rather than stray Chinese.
+    zh = language == "zh"
+
+    if zh:
+        heavier = "上方" if upper_distance >= lower_distance else "下方"
+        caption = f"{time_sec:.2f} 秒击球时刻；用于复盘{heavier}球员的站位与回位路线"
+    else:
+        heavier = "upper" if upper_distance >= lower_distance else "lower"
+        caption = (
+            f"Contact at {time_sec:.2f}s; review the {heavier} player's "
+            "positioning and recovery path"
+        )
     if not state:
-        return caption, "该帧用于定位真实击球时刻；当前坐标数据不足，不能判断具体横移方向。"
+        return caption, (
+            "该帧用于定位真实击球时刻；当前坐标数据不足，不能判断具体横移方向。"
+            if zh else
+            "This frame locates a real contact; the coordinate data is not sufficient to judge a sideways direction."
+        )
 
     details = []
     advice = []
-    for side, label in (("upper", "上方"), ("lower", "下方")):
+    for side in ("upper", "lower"):
         item = state.get(side) or {}
         court = item.get("court")
         speed = item.get("speed")
         if not isinstance(court, list) or len(court) < 2:
             continue
         x, y = float(court[0]), float(court[1])
-        details.append(f"{label}约在 ({x:.2f}, {y:.2f})m、速度 {float(speed or 0):.2f}m/s")
-        if x < 2.65:
-            direction = "向右侧中路回收"
-        elif x > 3.45:
-            direction = "向左侧中路回收"
+        label = ("上方" if side == "upper" else "下方") if zh else side
+        if zh:
+            details.append(f"{label}约在 ({x:.2f}, {y:.2f})m、速度 {float(speed or 0):.2f}m/s")
         else:
-            direction = "保持中路并做分腿垫步"
-        role = "击球后" if side == player else "准备下一拍时"
-        advice.append(f"{label}球员{role}建议先{direction}，再根据来球方向启动")
-    evidence = "；".join(details) if details else "当前帧未获得完整球员坐标"
-    guidance = (
-        f"\n\n**画面复盘（战术推断）**\n"
-        f"已附上 {time_sec:.2f} 秒的真实击球帧。检测数据：{evidence}。"
-        f"{'；'.join(advice)}。场地坐标只能支持站位与移动方向建议，不能据此判断具体挥拍动作。"
-    )
+            details.append(f"{label} around ({x:.2f}, {y:.2f}) m at {float(speed or 0):.2f} m/s")
+        if x < 2.65:
+            direction = "向右侧中路回收" if zh else "recover toward the middle on the right side"
+        elif x > 3.45:
+            direction = "向左侧中路回收" if zh else "recover toward the middle on the left side"
+        else:
+            direction = "保持中路并做分腿垫步" if zh else "hold the middle and split-step"
+        if zh:
+            role = "击球后" if side == player else "准备下一拍时"
+            advice.append(f"{label}球员{role}建议先{direction}，再根据来球方向启动")
+        else:
+            role = "after the shot" if side == player else "while preparing for the next shot"
+            advice.append(f"the {label} player should {direction} {role}, then react to the next shuttle")
+
+    if zh:
+        evidence = "；".join(details) if details else "当前帧未获得完整球员坐标"
+        guidance = (
+            f"\n\n**画面复盘（战术推断）**\n"
+            f"已附上 {time_sec:.2f} 秒的真实击球帧。检测数据：{evidence}。"
+            f"{'；'.join(advice)}。场地坐标只能支持站位与移动方向建议，不能据此判断具体挥拍动作。"
+        )
+    else:
+        evidence = "; ".join(details) if details else "no complete player coordinates for this frame"
+        guidance = (
+            f"\n\n**Frame review (tactical inference)**\n"
+            f"A real contact frame at {time_sec:.2f}s is attached. Detected data: {evidence}. "
+            f"{'; '.join(advice)}. Court coordinates only support positioning and movement advice; "
+            f"they cannot establish the actual swing."
+        )
     return caption, guidance
 
 
-def resolve_frame_markers(job_id: str, answer: str, user_message: str = "") -> tuple[str, list[dict]]:
+def resolve_frame_markers(job_id: str, answer: str, user_message: str = "",
+                          language: str = "zh") -> tuple[str, list[dict]]:
     """Turn at most one model marker into a validated hit-frame attachment."""
     result = job_service.job_result(job_id) or {}
     report = result.get("report") or {}
@@ -167,7 +203,9 @@ def resolve_frame_markers(job_id: str, answer: str, user_message: str = "") -> t
     if selected_hit is None and needs_frame(user_message) and valid_hits:
         selected_hit, state = _select_evidence_hit(job_id, valid_hits, report)
         if selected_hit:
-            selected_caption, fallback_guidance = _movement_guidance(selected_hit, state, report)
+            selected_caption, fallback_guidance = _movement_guidance(
+                selected_hit, state, report, language
+            )
     if selected_hit:
         hit_time = float(selected_hit.get("time_sec", 0))
         try:
