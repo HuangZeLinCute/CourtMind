@@ -5,6 +5,7 @@ import type { CourtDetectionResponse, CourtState } from "@/types"
 
 /**
  * Court detection state machine for one uploaded video.
+ * - loadCourt(): GET /api/videos/{id}/court (already-persisted state, if any).
  * - detect(): POST /api/videos/{id}/detect-court (CourtKeyNet by default,
  *   legacy template detector when useLegacy is set).
  * - saveCorners(): PUT /api/videos/{id}/court (manual corner editor).
@@ -13,6 +14,22 @@ export function useCourtDetection(videoId: string | null) {
   const [court, setCourt] = useState<CourtState | null>(null)
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const loadCourt = useCallback(async () => {
+    if (!videoId) return null
+    try {
+      const { data } = await api.get<CourtState>(`/videos/${videoId}/court`)
+      if (data?.corners && data.corners.length === 4) {
+        setCourt(data)
+        return data
+      }
+      return null
+    } catch {
+      // A missing or unreadable court state is not an error: the caller falls
+      // back to running detection.
+      return null
+    }
+  }, [videoId])
 
   const detect = useCallback(
     async (useLegacy = false, templateFile?: File | null) => {
@@ -77,5 +94,5 @@ export function useCourtDetection(videoId: string | null) {
     [videoId],
   )
 
-  return { court, detecting, error, detect, saveCorners }
+  return { court, detecting, error, loadCourt, detect, saveCorners }
 }

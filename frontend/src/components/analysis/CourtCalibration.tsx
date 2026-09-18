@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { CourtOverlay } from "@/components/analysis/CourtOverlay"
 import { CourtStatus } from "@/components/analysis/CourtStatus"
@@ -31,13 +31,31 @@ const DISPLAY_HEIGHT = 480
  */
 export function CourtCalibration({ video, onConfirmed }: CourtCalibrationProps) {
   const { t } = useLanguage()
-  const { court, detecting, error, detect, saveCorners } = useCourtDetection(video.video_id)
+  const { court, detecting, error, loadCourt, detect, saveCorners } = useCourtDetection(video.video_id)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Corners | null>(null)
   const [saving, setSaving] = useState(false)
   const [legacyOpen, setLegacyOpen] = useState(false)
   const [legacyFile, setLegacyFile] = useState<File | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const bootstrappedFor = useRef<string | null>(null)
+  const [bootstrapping, setBootstrapping] = useState(true)
+
+  // Court detection runs automatically the first time this video is shown, so
+  // the preview image and the four corners are ready without a manual click.
+  // A stored court state (e.g. re-entering this step) short-circuits it, and
+  // the ref keeps React StrictMode's double effect from detecting twice.
+  useEffect(() => {
+    const id = video.video_id
+    if (!id || bootstrappedFor.current === id) return
+    bootstrappedFor.current = id
+    setBootstrapping(true)
+    void (async () => {
+      const existing = await loadCourt()
+      if (existing?.corners?.length !== 4) await detect(false)
+      setBootstrapping(false)
+    })()
+  }, [video.video_id, loadCourt, detect])
 
   const originalSize = useMemo(
     () => ({ width: video.width, height: video.height }),
@@ -81,6 +99,7 @@ export function CourtCalibration({ video, onConfirmed }: CourtCalibrationProps) 
   }
 
   const previewUrl = toFullUrl(court?.preview_url)
+  const busy = detecting || bootstrapping
 
   return (
     <div className="space-y-4">
@@ -88,7 +107,7 @@ export function CourtCalibration({ video, onConfirmed }: CourtCalibrationProps) 
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
           <span className="text-destructive">{error}</span>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => runDetect(false)}>
+            <Button variant="outline" size="sm" onClick={() => runDetect(false)} disabled={busy}>
               {t("court.retry")}
             </Button>
             <Button
@@ -132,7 +151,7 @@ export function CourtCalibration({ video, onConfirmed }: CourtCalibrationProps) 
               </>
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                {detecting ? t("court.detectingText") : t("court.noDetection")}
+                {busy ? t("court.detectingText") : t("court.noDetection")}
               </div>
             )}
           </div>
@@ -155,7 +174,7 @@ export function CourtCalibration({ video, onConfirmed }: CourtCalibrationProps) 
         {/* Status panel */}
         <div className="min-w-0">
           <CourtStatus
-            detecting={detecting}
+            detecting={busy}
             courtDetected={!!court?.corners}
             detectorName={court?.detector ?? null}
             cornerCount={court?.corners?.length ?? 0}
@@ -198,7 +217,7 @@ export function CourtCalibration({ video, onConfirmed }: CourtCalibrationProps) 
                   size="sm"
                   variant="outline"
                   className="w-full"
-                  disabled={!legacyFile || detecting}
+                  disabled={!legacyFile || busy}
                   onClick={() => runDetect(true, legacyFile)}
                 >
                   {t("court.detectLegacy")}
