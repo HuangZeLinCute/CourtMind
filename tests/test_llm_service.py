@@ -40,8 +40,17 @@ class LlmServiceTests(unittest.TestCase):
                 "private_extra": "must-not-be-sent",
             },
             "report": {
+                "overview": "本场共 2 个回合。",
                 "summary": {"rally_count": 2, "total_hits": 7},
                 "rallies": [{"rally_id": 1, "hit_count": 4, "unknown": "drop"}],
+                "insights": [
+                    {
+                        "kind": "action",
+                        "title": "训练重点",
+                        "message": "多拍相持较稳。",
+                        "private_extra": "must-not-be-sent",
+                    }
+                ],
                 "limitations": "estimated",
                 "private_extra": "must-not-be-sent",
             },
@@ -56,6 +65,27 @@ class LlmServiceTests(unittest.TestCase):
         self.assertNotIn("private_extra", context)
         self.assertNotIn("private_extra", context["report"])
         self.assertNotIn("unknown", context["report"]["rallies"][0])
+        self.assertNotIn("private_extra", context["report"]["insights"][0])
+
+    def test_non_chinese_reply_relabels_the_chinese_report_text(self):
+        with tempfile.TemporaryDirectory() as root, patch.object(
+            llm_service.job_service, "job_result", return_value=self._result(root)
+        ):
+            zh = llm_service.build_match_context("job1")
+            en = llm_service.build_match_context("job1", "en")
+
+        # Chinese replies read the narrative as-is.
+        self.assertEqual(zh["report"]["overview"], "本场共 2 个回合。")
+        self.assertEqual(zh["report"]["insights"][0]["title"], "训练重点")
+
+        # Non-Chinese replies get the same facts under explicit *_zh keys, so the
+        # model translates them instead of mirroring the Chinese wording.
+        self.assertEqual(en["report"]["summary"]["total_hits"], 7)
+        self.assertEqual(en["report"]["overview_zh"], "本场共 2 个回合。")
+        self.assertEqual(en["report"]["insights"][0]["message_zh"], "多拍相持较稳。")
+        self.assertNotIn("overview", en["report"])
+        self.assertNotIn("title", en["report"]["insights"][0])
+        self.assertNotIn("private_extra", en["report"]["insights"][0])
 
     def test_chat_sends_match_data_and_persists_only_visible_messages(self):
         captured = {}
